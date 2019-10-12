@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.MainActivity"
+    tools:layout_editor_absoluteY="81dp"
+    android:background="#2e2e2e">
+
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        >
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collappsingtoolbar"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="?attr/colorPrimary"
+            android:layout_gravity="center"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp"
+            app:contentInsetStartWithNavigation="0dp"
+            app:expandedTitleGravity="center|bottom"
+            app:collapsedTitleGravity="center_horizontal"
+
+            app:title="Login"
+            android:background="@color/colorPrimary">
+
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbarid"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                android:layout_width="match_parent"
+                android:background="@color/colorPrimary"
+                app:contentInsetLeft="0dp"
+                app:contentInsetStart="0dp"
+                android:layout_height="?attr/actionBarSize"/>
+
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginTop="30dp"
+                android:src="@drawable/nertivia_logo"
+                app:layout_anchor="@+id/appbar"
+                app:layout_anchorGravity="center" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:id="@+id/main"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textEmailAddress"
+                android:hint="Email"
+                android:padding="10dp"
+                android:textColorHint="@color/hint_color"
+                android:textColor="@color/white"
+                android:background="@drawable/login_edit_background"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"/>
+
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPassword"
+                android:hint="Password"
+                android:padding="10dp"
+                android:textColor="@color/white"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/login_edit_background"
+                android:textColorHint="@color/hint_color"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"/>
+            <Button
+                android:id="@+id/loginBtn"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Login"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/white"
+                android:background="@drawable/login_button"
+                />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

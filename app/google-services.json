@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "858269624186",
+    "firebase_url": "https://dotted-clover-231410.firebaseio.com",
+    "project_id": "dotted-clover-231410",
+    "storage_bucket": "dotted-clover-231410.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858269624186:android:e73d49e30407e088d918c3",
+        "android_client_info": {
+          "package_name": "com.supertiger.nertivia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "858269624186-too8k7pvdunj8ar829p0f70605pts3cl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1qQnuGz8fLJSEH0P0kTioOKI1wV7WmzM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858269624186-too8k7pvdunj8ar829p0f70605pts3cl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
