@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
 import com.supertiger.nertivia.cache.messages
 import com.supertiger.nertivia.cache.selectedChannelID
 import kotlinx.android.synthetic.main.friends_list_template.view.user_avatar
@@ -13,6 +12,8 @@ import kotlinx.android.synthetic.main.friends_list_template.view.username
 import kotlinx.android.synthetic.main.message_template.view.*
 import android.view.Gravity
 import android.widget.LinearLayout
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.supertiger.nertivia.R
 import com.supertiger.nertivia.cache.currentUser
 
@@ -64,9 +65,12 @@ class MessagesListAdapter: RecyclerView.Adapter<MessagesViewHolder>() {
             }
         }
 
-        Picasso.get().load(
-            "https://supertiger.tk/api/avatars/" + (messages[selectedChannelID]?.get(position)?.creator?.avatar ?: "default") + "?type=png"
-        ).placeholder(R.drawable.nertivia_logo).error(R.drawable.nertivia_logo).into(holder.itemView.user_avatar)
+        Glide.with(holder.itemView.context)
+            .load("https://supertiger.tk/api/avatars/" + (messages[selectedChannelID]?.get(position)?.creator?.avatar ?: "default") + "?type=webp")
+            .apply(RequestOptions().override(200, 200))
+            .placeholder(R.drawable.nertivia_logo)
+            .into(holder.itemView.user_avatar);
+
     }
 
 }

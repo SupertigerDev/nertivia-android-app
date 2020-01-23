@@ -11,29 +11,29 @@ import com.bumptech.glide.request.RequestOptions
 import com.supertiger.nertivia.NamedEvent
 import com.supertiger.nertivia.R
 import com.supertiger.nertivia.RxBus
-import com.supertiger.nertivia.cache.currentUser
-import com.supertiger.nertivia.cache.friends
-import com.supertiger.nertivia.cache.notifications
+import com.supertiger.nertivia.cache.*
 import com.supertiger.nertivia.models.User
 import kotlinx.android.synthetic.main.activity_drawer_layout.*
 import kotlinx.android.synthetic.main.friends_list_template.view.*
 
 private var row_index: Int = -1
-class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
+class RecentListAdapter: RecyclerView.Adapter<RecentViewHolder>() {
 
     override fun getItemCount(): Int {
-        return friends?.size!!
+        return dmRecentsSorted().size
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FriendsViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecentViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val cellForRow = layoutInflater.inflate(R.layout.friends_list_template, parent, false)
-        return FriendsViewHolder(cellForRow)
+        return RecentViewHolder(cellForRow)
     }
 
-    override fun onBindViewHolder(holder: FriendsViewHolder, position: Int) {
-        val user = friends?.get(position)?.recipient
+    override fun onBindViewHolder(holder: RecentViewHolder, position: Int) {
+
+        val user = dmRecentsSorted()[position].recipients?.first();
+
         val notifyCount = notifications.values.find {
             it.sender?.uniqueID == user?.uniqueID
         }?.count
@@ -73,7 +73,7 @@ class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
     }
 }
 
-class FriendsViewHolder(v: View, var user: User? = null): RecyclerView.ViewHolder(v) {
+class RecentViewHolder(v: View, var user: User? = null): RecyclerView.ViewHolder(v) {
 
 
 }
