@@ -108,7 +108,6 @@ class LoginActivity : AppCompatActivity() {
                         Toast.makeText(    applicationContext,  "success",     Toast.LENGTH_SHORT   ).show()
                     } else {
                         val jObjError = JSONObject(response.errorBody()?.string())
-                        Log.d("failluuu", jObjError.toString())
                         Toast.makeText(    applicationContext,  "faill ;c",     Toast.LENGTH_SHORT   ).show()
                     }
                 }

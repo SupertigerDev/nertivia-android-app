@@ -19,7 +19,7 @@ fun dmRecentsSorted(): List<Channel> {
     for (v in channelsSort) {
         if (v.second.server_id === null) {
             val notify = notifications.values.find {
-                it.sender?.uniqueID == v.second.recipients?.first()?.uniqueID
+                it.sender?.uniqueID == v.second.recipients?.first()?.uniqueID && it.channelID == v.second.channelID
             }
 
             if (notify != null) {
@@ -31,7 +31,7 @@ fun dmRecentsSorted(): List<Channel> {
     }
 
 
-    // unopened dms test
+    // unopened dms
     notifications.values.forEach {
         if (channels[it.channelID] === null && channels[it.channelID]?.server_id === null) {
             val username = it.sender?.username
@@ -39,11 +39,10 @@ fun dmRecentsSorted(): List<Channel> {
             val avatar = it.sender?.avatar
             val uniqueID = it.sender?.uniqueID
             val recipients = List(1) {User(username, tag, avatar, uniqueID )}
-            unOpenedDms.add(Channel(recipients, null, it.channelID, null, null))
+            unOpenedDms.add(Channel(recipients, null, it.channelID, null, null, null))
         }
     }
 
     return unOpenedDms + highPriority + lowPriority;
 
-    //Log.d("testowo", v.toString())
 }

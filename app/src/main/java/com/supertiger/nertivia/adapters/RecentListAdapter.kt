@@ -16,7 +16,6 @@ import com.supertiger.nertivia.models.User
 import kotlinx.android.synthetic.main.activity_drawer_layout.*
 import kotlinx.android.synthetic.main.friends_list_template.view.*
 
-private var row_index: Int = -1
 class RecentListAdapter: RecyclerView.Adapter<RecentViewHolder>() {
 
     override fun getItemCount(): Int {
@@ -35,7 +34,7 @@ class RecentListAdapter: RecyclerView.Adapter<RecentViewHolder>() {
         val user = dmRecentsSorted()[position].recipients?.first();
 
         val notifyCount = notifications.values.find {
-            it.sender?.uniqueID == user?.uniqueID
+            it.sender?.uniqueID == user?.uniqueID && channels[it.channelID]?.server_id === null
         }?.count
         holder.itemView.username.text = user?.username ?: ""
 
@@ -62,10 +61,10 @@ class RecentListAdapter: RecyclerView.Adapter<RecentViewHolder>() {
                     user?.uniqueID
                 )
             )
-            row_index=position
+            selectedUniqueID = user?.uniqueID
             notifyDataSetChanged()
         }
-        if (row_index==position) {
+        if (selectedUniqueID == user?.uniqueID) {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_selected_background)
         } else {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_background)

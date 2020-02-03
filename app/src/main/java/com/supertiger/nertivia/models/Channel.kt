@@ -5,5 +5,6 @@ data class Channel(
     var status: Int?,
     var channelID: String?,
     var lastMessaged: Long?,
-    var server_id: String?
+    var server_id: String?,
+    var name: String?
 )

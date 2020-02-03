@@ -6,6 +6,11 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:statusBarColor" >#073240</item>
+        <item name="android:navigationBarColor" >#073240</item>
+        <item name="android:windowDrawsSystemBarBackgrounds" >true</item>
+
     </style>
 
     <style name="AppTheme.NoActionBar">

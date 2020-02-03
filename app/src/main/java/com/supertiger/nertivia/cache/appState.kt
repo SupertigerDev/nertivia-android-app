@@ -4,4 +4,6 @@ var inFocus: Boolean = true;
 
 var drawerTab: Int = 0; // friends: 0 | recents: 1
 
-//var selectedServerID: String? = null;
+var selectedChannelID: String? = null
+var selectedUniqueID: String? = null
+var selectedServerID: String? = null;

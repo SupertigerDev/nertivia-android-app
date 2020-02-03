@@ -5,5 +5,6 @@ data class Server (
     var creator: User? = null,
     var default_channel_id: String? = null,
     var server_id: String? = null,
-    var avatar: String? = null
+    var avatar: String? = null,
+    var banner: String? = null
 )

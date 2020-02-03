@@ -55,6 +55,17 @@ class SocketIO {
 
 
 
+
+            for (i in 0 until serversArr.length()) {
+                val serverChannels = gson.fromJson((serversArr[i] as JSONObject).getJSONArray("channels").toString(), Array<Channel>::class.java).toList().associateBy({ it.channelID }, {it})
+                channels = (serverChannels as MutableMap<String?, Channel> + channels).toMutableMap()
+
+                val server = srvs.toList()[i].second
+                serverChannelIDs[server.server_id] = serverChannels.map { it.value.channelID }
+
+            }
+
+
             if (settings.has("server_position")) {
                 val serverPosArr: JSONArray = settings.getJSONArray("server_position");
                 val tempServers = srvs.toMutableMap();
@@ -68,9 +79,6 @@ class SocketIO {
                         servers[find.server_id] = find;
                     }
 
-                    val serverChannels = gson.fromJson((serversArr[i] as JSONObject).getJSONArray("channels").toString(), Array<Channel>::class.java).toList().associateBy({ it.channelID }, {it})
-
-                    channels = (serverChannels as MutableMap<String?, Channel> + channels).toMutableMap()
                 }
                 servers = (tempServers + servers).toMutableMap();
             } else {
@@ -148,7 +156,6 @@ class SocketIO {
             mSocket?.emit(event, args)
             true
         } catch (e : URISyntaxException) {
-            Log.e("EMIT_ERROR", e.message)
             false
         }
     }

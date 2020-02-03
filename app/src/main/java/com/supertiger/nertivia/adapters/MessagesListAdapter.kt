@@ -1,6 +1,7 @@
 package com.supertiger.nertivia.adapters
 
-import android.os.Build
+import android.content.res.Resources
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.supertiger.nertivia.R
 import com.supertiger.nertivia.cache.currentUser
+import com.supertiger.nertivia.friendlyDate
 
 
 class MessagesListAdapter: RecyclerView.Adapter<MessagesViewHolder>() {
@@ -31,45 +33,60 @@ class MessagesListAdapter: RecyclerView.Adapter<MessagesViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: MessagesViewHolder, position: Int) {
-        val message = messages[selectedChannelID]?.get(position)?.message
+        val message = messages[selectedChannelID]?.get(position)
+
         val user = messages[selectedChannelID]?.get(position)?.creator
         val username = user?.username
         val uniqueID = user?.uniqueID
 
         holder.itemView.username.text = username
-        holder.itemView.message.text = message
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            // if the message is by us, set the gravity to right.
-            if (currentUser?.uniqueID == uniqueID) {
-                holder.itemView.triangle.setBackgroundResource(R.drawable.message_triangle_reversed)
-                holder.itemView.details.setBackgroundResource(R.drawable.message_background_reversed)
-                holder.itemView.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        holder.itemView.message.text = message?.message
+        holder.itemView.time.text = friendlyDate(message?.created);
 
-                holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_RTL
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                params.gravity = Gravity.END
-                holder.itemView.layoutParams = params
-            } else {
-                holder.itemView.triangle.setBackgroundResource(R.drawable.message_triangle)
-                holder.itemView.details.setBackgroundResource(R.drawable.message_background)
-                holder.itemView.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        // if the message is by us, set the gravity to right.
+        if (currentUser?.uniqueID == uniqueID) {
+            holder.itemView.triangle.setBackgroundResource(R.drawable.message_triangle_reversed)
+            holder.itemView.details.setBackgroundResource(R.drawable.message_background_reversed)
+            holder.itemView.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
 
-                holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_LTR
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                params.gravity = Gravity.START
-                holder.itemView.layoutParams = params
-            }
+            holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.gravity = Gravity.END
+            holder.itemView.layoutParams = params
+        } else {
+            holder.itemView.triangle.setBackgroundResource(R.drawable.message_triangle)
+            holder.itemView.details.setBackgroundResource(R.drawable.message_background)
+            holder.itemView.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
+
+            holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_LTR
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.gravity = Gravity.START
+            holder.itemView.layoutParams = params
         }
 
+
         Glide.with(holder.itemView.context)
-            .load("https://supertiger.tk/api/avatars/" + (messages[selectedChannelID]?.get(position)?.creator?.avatar ?: "default") + "?type=webp")
+            .load("https://supertiger.tk/api/avatars/" + (message?.creator?.avatar ?: "default") + "?type=webp")
             .apply(RequestOptions().override(200, 200))
             .placeholder(R.drawable.nertivia_logo)
             .into(holder.itemView.user_avatar);
+
+        if (message?.files != null && message.files?.size!! > 0) {
+            if (message.message == null) {
+                holder.itemView.message.visibility = View.GONE;
+            }
+            holder.itemView.image.visibility = View.VISIBLE
+            Glide.with(holder.itemView.context)
+                .load("https://supertiger.tk/api/media/" + message.files!![0]?.fileID)
+                .apply(RequestOptions().override(Resources.getSystem().displayMetrics.widthPixels))
+                .into(holder.itemView.image);
+        } else {
+            holder.itemView.image.visibility = View.GONE;
+        }
 
     }
 

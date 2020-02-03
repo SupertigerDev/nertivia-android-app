@@ -12,29 +12,36 @@ import com.supertiger.nertivia.NamedEvent
 import com.supertiger.nertivia.R
 import com.supertiger.nertivia.RxBus
 import com.supertiger.nertivia.cache.*
+import com.supertiger.nertivia.models.Channel
 import com.supertiger.nertivia.models.User
 import kotlinx.android.synthetic.main.activity_drawer_layout.*
+import kotlinx.android.synthetic.main.channels_list_template.view.*
 import kotlinx.android.synthetic.main.friends_list_template.view.*
+import kotlinx.android.synthetic.main.friends_list_template.view.notification_count
 
-class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
+class ChannelsListAdapter: RecyclerView.Adapter<ChannelViewHolder>() {
 
     override fun getItemCount(): Int {
-        return friends?.size!!
+        return if (serverChannelIDs[selectedServerID]?.size != null) serverChannelIDs[selectedServerID]?.size!! else 0
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FriendsViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val cellForRow = layoutInflater.inflate(R.layout.friends_list_template, parent, false)
-        return FriendsViewHolder(cellForRow)
+        val cellForRow = layoutInflater.inflate(R.layout.channels_list_template, parent, false)
+        return ChannelViewHolder(cellForRow)
     }
 
-    override fun onBindViewHolder(holder: FriendsViewHolder, position: Int) {
-        val user = friends?.get(position)?.recipient
+    override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
+        val channel = channels[serverChannelIDs[selectedServerID]?.get(position)]
+
+
+        holder.itemView.channel_name.text = channel?.name
+
+
         val notifyCount = notifications.values.find {
-            it.sender?.uniqueID == user?.uniqueID && channels[it.channelID]?.server_id === null
+            it.channelID == channel?.channelID
         }?.count
-        holder.itemView.username.text = user?.username ?: ""
 
         if (notifyCount != null) {
             holder.itemView.notification_count.text = notifyCount.toString()
@@ -43,34 +50,30 @@ class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
             holder.itemView.notification_count.visibility = View.GONE
         }
 
-        Glide.with(holder.itemView.context)
-            .load("https://supertiger.tk/api/avatars/" + (user?.avatar ?: "default") + "?type=webp")
-            .apply(RequestOptions().override(200, 200))
-            .placeholder(R.drawable.nertivia_logo)
-            .into(holder.itemView.user_avatar);
 
-
-        holder.user = user
+        holder.channel = channel
 
         holder.itemView.setOnClickListener {
             RxBus.publish(
                 NamedEvent(
-                    NamedEvent.FRIEND_CLICKED,
-                    user?.uniqueID
+                    NamedEvent.CHANNEL_CLICKED,
+                    channel?.channelID
                 )
             )
-            selectedUniqueID = user?.uniqueID
+            selectedChannelID = channel?.channelID
+            selectedUniqueID = null;
             notifyDataSetChanged()
         }
-        if (selectedUniqueID == user?.uniqueID) {
+        if (selectedChannelID == channel?.channelID) {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_selected_background)
         } else {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_background)
         }
+
     }
 }
 
-class FriendsViewHolder(v: View, var user: User? = null): RecyclerView.ViewHolder(v) {
+class ChannelViewHolder(v: View, var channel: Channel? = null): RecyclerView.ViewHolder(v) {
 
 
 }

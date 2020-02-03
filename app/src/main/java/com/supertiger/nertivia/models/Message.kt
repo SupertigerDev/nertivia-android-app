@@ -5,6 +5,7 @@ data class Message (
     var creator: User?,
     var channelID: String? = null,
     var messageID: String? = null,
-    var created: Any? = 0
+    var created: Long? = 0,
+    var files: List<File?>?
 )
 

@@ -11,14 +11,11 @@ import com.bumptech.glide.request.RequestOptions
 import com.supertiger.nertivia.NamedEvent
 import com.supertiger.nertivia.R
 import com.supertiger.nertivia.RxBus
-import com.supertiger.nertivia.cache.currentUser
-import com.supertiger.nertivia.cache.friends
-import com.supertiger.nertivia.cache.notifications
+import com.supertiger.nertivia.cache.*
 import com.supertiger.nertivia.models.User
 import kotlinx.android.synthetic.main.activity_drawer_layout.*
 import kotlinx.android.synthetic.main.friends_list_template.view.*
 
-private var row_index: Int = -1
 class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
 
     override fun getItemCount(): Int {
@@ -35,7 +32,7 @@ class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
     override fun onBindViewHolder(holder: FriendsViewHolder, position: Int) {
         val user = friends?.get(position)?.recipient
         val notifyCount = notifications.values.find {
-            it.sender?.uniqueID == user?.uniqueID
+            it.sender?.uniqueID == user?.uniqueID && channels[it.channelID]?.server_id === null
         }?.count
         holder.itemView.username.text = user?.username ?: ""
 
@@ -62,10 +59,10 @@ class FriendsListAdapter: RecyclerView.Adapter<FriendsViewHolder>() {
                     user?.uniqueID
                 )
             )
-            row_index=position
+            selectedUniqueID = user?.uniqueID
             notifyDataSetChanged()
         }
-        if (row_index==position) {
+        if (selectedUniqueID == user?.uniqueID) {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_selected_background)
         } else {
             holder.itemView.setBackgroundResource(R.drawable.friend_list_background)

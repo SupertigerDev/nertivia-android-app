@@ -1,10 +1,12 @@
 package com.supertiger.nertivia.activities
 
 import android.content.Intent
+
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
+
 import androidx.appcompat.app.ActionBarDrawerToggle
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
@@ -12,9 +14,11 @@ import androidx.core.view.GravityCompat
 import kotlinx.android.synthetic.main.activity_drawer_layout.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.supertiger.nertivia.cache.*
 import com.supertiger.nertivia.models.*
 import com.supertiger.nertivia.services.ChannelService
@@ -26,13 +30,9 @@ import retrofit2.Response
 import javax.security.auth.callback.Callback
 import com.google.gson.JsonObject
 import com.supertiger.nertivia.*
-import com.supertiger.nertivia.adapters.FriendsListAdapter
-import com.supertiger.nertivia.adapters.MessagesListAdapter
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import com.supertiger.nertivia.adapters.RecentListAdapter
-import com.supertiger.nertivia.adapters.ServersListAdapter
+import com.supertiger.nertivia.adapters.*
+
+import kotlinx.android.synthetic.main.friends_list_template.view.*
 
 
 class MainActivity : AppCompatActivity()  {
@@ -70,26 +70,44 @@ class MainActivity : AppCompatActivity()  {
         setDrawer()
 
         RxBus.listen(NamedEvent::class.java).subscribe {
-            if (it.code == NamedEvent.FRIEND_CLICKED) {
-                val uniqueID = it.sent
-                Handler().postDelayed({
-                    drawer_layout.closeDrawer(GravityCompat.START)
-                }, 0)
-
+            when {
+                it.code == NamedEvent.FRIEND_CLICKED -> {
+                    val uniqueID = it.sent
+                    Handler().postDelayed({
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }, 0)
+                    friends_list.adapter?.notifyDataSetChanged()
+                    recent_list.adapter?.notifyDataSetChanged()
                     getChannel(uniqueID)
+                }
+                it.code == NamedEvent.SERVER_CLICKED -> {
+                    serverClicked()
+                }
+                it.code == NamedEvent.CHANNEL_CLICKED -> {
+                    Handler().postDelayed({
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }, 0)
+                    getMessages(it.sent)
+                    toolbar_title.text = channels[it.sent]?.name
+                    friends_list.adapter?.notifyDataSetChanged()
+                    recent_list.adapter?.notifyDataSetChanged()
+
+                }
             }
         }
+
         notificationClicked(intent)
 
     }
-
 
     private fun sendMessage(selectedChannelID: String, message: String) {
         val jsonObject = JsonObject()
 
         jsonObject.addProperty("message", message)
         jsonObject.addProperty("channelID", selectedChannelID)
+        jsonObject.addProperty("created", System.currentTimeMillis() )
         jsonObject.add("creator", gson.toJsonTree(currentUser) )
+
 
 
         addMessage( gson.fromJson(jsonObject, Message::class.java) )
@@ -119,7 +137,6 @@ class MainActivity : AppCompatActivity()  {
         socketIOInstance = SocketIO()
         socketIOInstance?.connect(getString(R.string.domain))
         socketIOInstance?.onConnect = {
-            socketIOInstance?.dismissNotification(selectedChannelID)
             runOnUiThread {
                 Toast.makeText(applicationContext, "Connected!", Toast.LENGTH_SHORT).show()
             }
@@ -130,18 +147,22 @@ class MainActivity : AppCompatActivity()  {
             }
         }
         socketIOInstance?.onAuthenticate = {
+            socketIOInstance?.dismissNotification(selectedChannelID)
             runOnUiThread{
                 Toast.makeText(applicationContext, "Authenticated", Toast.LENGTH_SHORT).show()
                 setFriendAdapter()
                 setRecentAdapter()
                 setServerAdapter()
+                if (intent.getStringExtra("notification:serverID") != null) {
+                    serverClicked()
+                }
+                checkPrivateNotification();
             }
         }
         socketIOInstance?.onMessageReceive = { fromSelectedChannel ->
             runOnUiThread {
                 recent_list.adapter?.notifyDataSetChanged()
                 if (fromSelectedChannel == true) {
-                    recent_list.adapter?.notifyDataSetChanged()
                     messages_list.adapter?.notifyItemInserted(0)
                     messages_list.scrollToPosition(0)
                 }
@@ -154,13 +175,24 @@ class MainActivity : AppCompatActivity()  {
                     friends_list.adapter?.notifyItemChanged(index)
                 }
                 recent_list.adapter?.notifyDataSetChanged()
+                channels_list.adapter?.notifyDataSetChanged()
+                servers_list.adapter?.notifyDataSetChanged()
+                checkPrivateNotification()
             }
-
         }
         socketIOInstance?.startEvents()
 
     }
+    private fun checkPrivateNotification() {
 
+        for (notification in notifications) {
+            if (channels[notification.value.channelID] !== null && channels[notification.value.channelID]?.server_id == null) {
+                dm_notification_alert.visibility = View.VISIBLE;
+                return;
+            }
+        }
+        dm_notification_alert.visibility = View.GONE;
+    }
     private fun setDrawer() {
         val toggle = ActionBarDrawerToggle(
             this,
@@ -173,7 +205,7 @@ class MainActivity : AppCompatActivity()  {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
         username.text = currentUser?.username
-        tag.text = "@" + currentUser?.tag
+        tag.text = "@${currentUser?.tag}"
 
 
         Glide.with(this).load("https://supertiger.tk/api/avatars/" + (currentUser?.avatar ?: "default") + "?type=webp").placeholder(R.drawable.nertivia_logo).into(header_avatar);
@@ -243,7 +275,6 @@ class MainActivity : AppCompatActivity()  {
                     }
                 } else {
                     val jObjError = JSONObject(response.errorBody()?.string())
-                    Log.d("testuuu", jObjError.toString())
                     Toast.makeText(applicationContext, "Something bork while getting messages :/ report to fishie asap!!" , Toast.LENGTH_SHORT).show()
                 }
             }
@@ -288,11 +319,46 @@ class MainActivity : AppCompatActivity()  {
             val channelID = intent.getStringExtra("notification:channelID");
             val username = intent.getStringExtra("notification:username");
             val uniqueID = intent.getStringExtra("notification:uniqueID");
-            toolbar_title.text = username;
-            removeNotification(channelID)
-            getChannel(uniqueID)
+            var channelName:String? = null;
+            var serverID:String? = null;
 
+            if (intent.getStringExtra("notification:serverID") != null) {
+                serverID = intent.getStringExtra("notification:serverID")
+                channelName = intent.getStringExtra("notification:channelName");
+            }
+
+            if (serverID != null) {
+                toolbar_title.text = channelName;
+                getMessages(channelID);
+                selectedUniqueID = null;
+                selectedServerID = serverID;
+                serverClicked()
+            } else {
+                toolbar_title.text = username;
+                removeNotification(channelID)
+                getChannel(uniqueID)
+                selectedUniqueID = uniqueID;
+            }
+            friends_list.adapter?.notifyDataSetChanged()
+            recent_list.adapter?.notifyDataSetChanged()
         }
+    }
+
+
+    private fun serverClicked() {
+        drawerTab = -1;
+        friends_button.alpha = 0.7F
+        recent_button.alpha = 0.7F
+        recent_list.visibility = View.GONE
+        friends_list.visibility = View.GONE
+        server_tab.visibility = View.VISIBLE
+        Glide.with(applicationContext)
+            .load("https://supertiger.tk/api/media/${servers[selectedServerID]?.banner}"  + "?type=webp")
+            .apply(RequestOptions().override(240, 130).centerCrop())
+            .into(server_banner);
+        server_banner.clipToOutline = true
+
+        setChannelsListAdapter()
     }
 
     private fun removeNotification(channelID: String?) {
@@ -326,21 +392,29 @@ class MainActivity : AppCompatActivity()  {
     }
 
     fun friendsClicked(v: View) {
+        selectedServerID = null;
+        servers_list.adapter?.notifyDataSetChanged()
         drawerTab = 0;
         friends_button.alpha = 1F
         recent_button.alpha = 0.7F
+        server_tab.visibility = View.GONE
         recent_list.visibility = View.GONE
         friends_list.visibility = View.VISIBLE
 
     }
     fun recentClicked(v: View) {
+        selectedServerID = null;
+        servers_list.adapter?.notifyDataSetChanged()
         drawerTab = 1;
         friends_button.alpha = 0.7F
         recent_button.alpha = 1F
+        server_tab.visibility = View.GONE
         friends_list.visibility = View.GONE
         recent_list.visibility = View.VISIBLE;
-
     }
+
+
+
     private fun setRecentAdapter() {
         recent_list.layoutManager = LinearLayoutManager(this)
         recent_list.adapter = RecentListAdapter()
@@ -353,6 +427,10 @@ class MainActivity : AppCompatActivity()  {
     private fun setFriendAdapter() {
         friends_list.layoutManager = LinearLayoutManager(this)
         friends_list.adapter = FriendsListAdapter()
+    }
+    private fun setChannelsListAdapter() {
+        channels_list.layoutManager = LinearLayoutManager(this)
+        channels_list.adapter = ChannelsListAdapter()
     }
 
 }

@@ -26,6 +26,7 @@ import androidx.core.app.Person
 import androidx.core.content.ContextCompat
 import com.supertiger.nertivia.cache.localNotifications
 import com.supertiger.nertivia.models.LocalNotification
+import com.supertiger.nertivia.models.LocalNotificationMessage
 
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
@@ -66,21 +67,37 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val avatar = remoteMessage.data["avatar"]
         val username = remoteMessage.data["username"]
         val message = remoteMessage.data["message"]
+        var serverID: String? = null
+        var serverName: String? = null
+        var channelName: String? = null;
 
-        val notificationID = addAndReturnNotificationID(channelID, message);
+        if (remoteMessage.data["server_id"] != null) {
+            serverID = remoteMessage.data["server_id"]
+        }
+        if (remoteMessage.data["server_name"] != null) {
+            serverName = remoteMessage.data["server_name"]
+        }
+        if (remoteMessage.data["channel_name"] != null) {
+            channelName = remoteMessage.data["channel_name"]
+        }
+
+        val notificationID = addAndReturnNotificationID(channelID, message, username);
 
         // added up messages
         val messages = localNotifications[notificationID].messages;
 
         val activityIntent = Intent(this, MainActivity::class.java)
         activityIntent.putExtra("notification:channelID", channelID);
+        if (serverID != null) {
+            activityIntent.putExtra("notification:channelName", channelName);
+            activityIntent.putExtra("notification:serverID", serverID);
+        }
         activityIntent.putExtra("notification:uniqueID", uniqueID);
         activityIntent.putExtra("notification:username", username);
         val contentIntent = PendingIntent.getActivity(
             this,
             notificationID, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT
         )
-
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL)
             .setSmallIcon(R.drawable.notification_icon)
@@ -93,13 +110,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
 
         val wew: Person = Person.Builder().setName("wew").build();
-        val user: Person = Person.Builder().setName(username).build();
 
         val messagingStyle = NotificationCompat.MessagingStyle(wew);
 
+        messagingStyle.setGroupConversation(true)
+        messagingStyle.conversationTitle = username;
+        if (serverName != null) {
+            messagingStyle.conversationTitle = "$serverName#$channelName ";
+        }
 
         messages.takeLast(6).forEach {
-            val message1 = NotificationCompat.MessagingStyle.Message(it,
+            val user: Person = Person.Builder().setName(it?.username).build();
+            val message1 = NotificationCompat.MessagingStyle.Message(it?.message,
                 2,
                 user)
             messagingStyle.addMessage(message1);
@@ -154,17 +176,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         return isActivityFound
     }
 
-    private fun addAndReturnNotificationID(channelID: String?, message: String? ): Int {
+    private fun addAndReturnNotificationID(channelID: String?, message: String?, username: String? ): Int {
         val notificationID = localNotifications.indexOfFirst { it.channelID == channelID };
         if (channelID != null) {
             if (notificationID >= 0) {
-                localNotifications[notificationID].messages.add(message)
+                localNotifications[notificationID].messages.add(LocalNotificationMessage(message, username))
                 if (localNotifications[notificationID].messages.size >= 20) {
                     localNotifications[notificationID].messages.removeAt(0);
                 }
                 return notificationID
             } else {
-                val arr: MutableList<String?> = mutableListOf(message);
+                val arr: MutableList<LocalNotificationMessage?> = mutableListOf(LocalNotificationMessage(message, username));
                 localNotifications.add(LocalNotification(arr, channelID))
                 return localNotifications.size - 1;
             }
