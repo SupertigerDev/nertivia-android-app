@@ -31,7 +31,6 @@ class ChannelsListAdapter: RecyclerView.Adapter<ChannelViewHolder>() {
         val cellForRow = layoutInflater.inflate(R.layout.channels_list_template, parent, false)
         return ChannelViewHolder(cellForRow)
     }
-
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         val channel = channels[serverChannelIDs[selectedServerID]?.get(position)]
 

@@ -25,14 +25,26 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+            <LinearLayout
+                android:id="@+id/presence_toolbar"
+                android:visibility="gone"
+                android:orientation="vertical"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginEnd="10dp"
+                android:layout_gravity="center"
+                android:background="@drawable/notification_tab_icon"
+            />
+
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Select Friend"
+                android:layout_gravity="center"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textSize="20sp"
-                android:layout_gravity="center"
                 android:id="@+id/toolbar_title" />
         </androidx.appcompat.widget.Toolbar>
         <ProgressBar
@@ -101,6 +113,13 @@
         layout="@layout/activity_drawer_layout"
         android:layout_gravity="start"
         android:layout_width="320dp"
+        android:layout_height="match_parent"
+        />
+
+    <include
+        layout="@layout/servers_members_drawer_layout"
+        android:layout_gravity="end"
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         />
 

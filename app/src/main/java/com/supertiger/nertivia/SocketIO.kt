@@ -11,6 +11,7 @@ import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URISyntaxException
+import java.sql.Struct
 
 
 class SocketIO {
@@ -22,6 +23,7 @@ class SocketIO {
     var onAuthenticate: (() -> Unit)? = null
     var onMessageReceive: ((selectedChannel: Boolean?) -> Unit)? = null
     var onMessageNotification: ((uniqueID: String?) -> Unit)? = null
+    var onPresenceChange: (() -> Unit)? = null;
 
     fun connect(address: String) {
         mSocket = IO.socket(address)
@@ -43,11 +45,25 @@ class SocketIO {
             val serversArr = user.getJSONArray("servers");
             val dmsArr = obj.getJSONArray("dms")
             val notifsArr = obj.getJSONArray("notifications")
+            val presences = obj.getJSONArray("currentFriendStatus");
+
+            val srvMem = obj.getJSONArray("serverMembers");
+
+
+            gson.fromJson(presences.toString(), Array<Any?>::class.java).toList().forEach {
+                val arr = gson.fromJson(it.toString(), Array<String?>::class.java).toList()
+                if (arr[0] != null) {
+                    userPresence.put(arr[0], arr[1]?.toInt());
+                }
+            }
+
 
 
             val notifs = gson.fromJson(notifsArr.toString(), Array<Notification>::class.java).toList().associateBy({it.channelID}, {it})
             val dmChannels = gson.fromJson(dmsArr.toString(), Array<Channel>::class.java).toList().associateBy({it.channelID}, {it})
             val srvs = gson.fromJson(serversArr.toString(), Array<Server>::class.java).toList().associateBy({it.server_id}, {it}) as MutableMap<String?, Server>
+            serverMembers = gson.fromJson(srvMem.toString(), Array<ServerMember>::class.java).toMutableList()
+            Log.d("OOWWOO", serverMembers.toString())
 
             friends = gson.fromJson(friendsArr.toString(), Array<Friend>::class.java).toList()
             channels = dmChannels as MutableMap<String?, Channel>
@@ -98,6 +114,13 @@ class SocketIO {
                 it.value.channelID != channelID
             }.toMutableMap()
             onMessageNotification?.invoke(user?.uniqueID);
+        }
+        mSocket?.on("userStatusChange") {args ->
+            val obj = args[0] as JSONObject
+            val uniqueID = obj["uniqueID"].toString();
+            val status = obj["status"].toString().toInt();
+            userPresence.put(uniqueID, status);
+            onPresenceChange?.invoke();
         }
         mSocket?.on("receiveMessage" ) { args ->
             val obj = args[0] as JSONObject

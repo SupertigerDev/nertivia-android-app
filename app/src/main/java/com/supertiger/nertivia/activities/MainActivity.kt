@@ -1,6 +1,10 @@
 package com.supertiger.nertivia.activities
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
 
 import android.os.Bundle
 import android.os.Handler
@@ -33,6 +37,7 @@ import com.supertiger.nertivia.*
 import com.supertiger.nertivia.adapters.*
 
 import kotlinx.android.synthetic.main.friends_list_template.view.*
+import kotlinx.android.synthetic.main.servers_members_drawer_layout.*
 
 
 class MainActivity : AppCompatActivity()  {
@@ -79,9 +84,12 @@ class MainActivity : AppCompatActivity()  {
                     friends_list.adapter?.notifyDataSetChanged()
                     recent_list.adapter?.notifyDataSetChanged()
                     getChannel(uniqueID)
+                    selectedUniqueID = uniqueID;
+                    toolBarPresenceChange()
                 }
                 it.code == NamedEvent.SERVER_CLICKED -> {
                     serverClicked()
+                    setMembersListAdapter()
                 }
                 it.code == NamedEvent.CHANNEL_CLICKED -> {
                     Handler().postDelayed({
@@ -91,7 +99,8 @@ class MainActivity : AppCompatActivity()  {
                     toolbar_title.text = channels[it.sent]?.name
                     friends_list.adapter?.notifyDataSetChanged()
                     recent_list.adapter?.notifyDataSetChanged()
-
+                    selectedUniqueID = null;
+                    toolBarPresenceChange()
                 }
             }
         }
@@ -100,30 +109,34 @@ class MainActivity : AppCompatActivity()  {
 
     }
 
-    private fun sendMessage(selectedChannelID: String, message: String) {
+    private fun sendMessage(channelID: String, message: String) {
         val jsonObject = JsonObject()
 
         jsonObject.addProperty("message", message)
-        jsonObject.addProperty("channelID", selectedChannelID)
+        jsonObject.addProperty("channelID", channelID)
         jsonObject.addProperty("created", System.currentTimeMillis() )
         jsonObject.add("creator", gson.toJsonTree(currentUser) )
 
 
 
         addMessage( gson.fromJson(jsonObject, Message::class.java) )
+        val addedMessage = messages[channelID]?.get(0)
 
-        val requestCall = messageService.sendMessage(selectedChannelID, MessageSendData(
+        val requestCall = messageService.sendMessage(channelID, MessageSendData(
             message,
             socketIOInstance?.id()
         ))
-        requestCall.enqueue(object: Callback, retrofit2.Callback<Any?> {
-            override fun onFailure(call: Call<Any?>, t: Throwable) {
+        requestCall.enqueue(object: Callback, retrofit2.Callback<PostMessageResponse?> {
+            override fun onFailure(call: Call<PostMessageResponse?>, t: Throwable) {
                 Toast.makeText(applicationContext,  t.message, Toast.LENGTH_SHORT).show()
             }
 
-            override fun onResponse(call: Call<Any?>, response: Response<Any?>) {
+            override fun onResponse(call: Call<PostMessageResponse?>, response: Response<PostMessageResponse?>) {
                 if (response.isSuccessful) {
-                    //Toast.makeText(applicationContext, "Message sent! " , Toast.LENGTH_SHORT).show()
+                    if (addedMessage != null) {
+                        addedMessage.messageID = response.body()?.messageCreated!!.messageID
+                    }
+
                 } else {
                     //val jObjError = JSONObject(response.errorBody()?.string())
                     Toast.makeText(applicationContext, "Something bork while sending message :/ report to fishie asap!!" , Toast.LENGTH_SHORT).show()
@@ -157,6 +170,10 @@ class MainActivity : AppCompatActivity()  {
                     serverClicked()
                 }
                 checkPrivateNotification();
+                toolBarPresenceChange();
+                if (selectedChannelID !== null && inFocus) {
+                    checkForNewMessages(selectedChannelID)
+                }
             }
         }
         socketIOInstance?.onMessageReceive = { fromSelectedChannel ->
@@ -166,6 +183,11 @@ class MainActivity : AppCompatActivity()  {
                     messages_list.adapter?.notifyItemInserted(0)
                     messages_list.scrollToPosition(0)
                 }
+            }
+        }
+        socketIOInstance?.onPresenceChange = {
+            runOnUiThread {
+                toolBarPresenceChange()
             }
         }
         socketIOInstance?.onMessageNotification = {uniqueID ->
@@ -183,10 +205,27 @@ class MainActivity : AppCompatActivity()  {
         socketIOInstance?.startEvents()
 
     }
+    private fun toolBarPresenceChange() {
+
+        val test = listOf("#919191","#27eb48", "#ffdd1e", "#ea0b1e", "#9a3dd3")
+
+
+        if (selectedUniqueID != null) {
+            if (userPresence[selectedUniqueID] != null) {
+
+                presence_toolbar.getBackground().setColorFilter(Color.parseColor(test[userPresence[selectedUniqueID]!!]), PorterDuff.Mode.SRC_ATOP);
+            } else  {
+                presence_toolbar.getBackground().setColorFilter(Color.parseColor(test[0]), PorterDuff.Mode.SRC_ATOP);
+            }
+            presence_toolbar.visibility = View.VISIBLE;
+        } else {
+            presence_toolbar.visibility = View.GONE;
+        }
+    }
     private fun checkPrivateNotification() {
 
         for (notification in notifications) {
-            if (channels[notification.value.channelID] !== null && channels[notification.value.channelID]?.server_id == null) {
+            if (channels[notification.value.channelID] === null || channels[notification.value.channelID]?.server_id == null) {
                 dm_notification_alert.visibility = View.VISIBLE;
                 return;
             }
@@ -256,6 +295,8 @@ class MainActivity : AppCompatActivity()  {
         if(messages[channelID] !== null) {
             selectedChannelID = channelID
             setMessagesAdapter()
+            // check if new messages exist. (just in case if client disconnected)
+            checkForNewMessages(channelID)
             return
         }
         chatting.visibility = View.GONE
@@ -274,7 +315,7 @@ class MainActivity : AppCompatActivity()  {
 
                     }
                 } else {
-                    val jObjError = JSONObject(response.errorBody()?.string())
+                    //val jObjError = JSONObject(response.errorBody()?.string())
                     Toast.makeText(applicationContext, "Something bork while getting messages :/ report to fishie asap!!" , Toast.LENGTH_SHORT).show()
                 }
             }
@@ -282,6 +323,35 @@ class MainActivity : AppCompatActivity()  {
         })
     }
 
+    private fun checkForNewMessages(channelID: String?) {
+        val msgs = messages[channelID];
+
+        if (msgs === null) {
+            return
+        }
+        val lastMessageID = msgs.first().messageID
+
+        messageService.getMessagesBefore(channelID, lastMessageID).enqueue(object: Callback, retrofit2.Callback<GetMessagesResponse> {
+
+            override fun onFailure(call: Call<GetMessagesResponse>, t: Throwable) {
+                Toast.makeText(applicationContext,  t.message, Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onResponse(call: Call<GetMessagesResponse>, response: Response<GetMessagesResponse>) {
+                if (response.isSuccessful) {
+                    if (response.body()?.messages !== null && response.body()?.messages!!.isNotEmpty()) {
+                        val newMessages = response.body()?.messages
+                        messages[channelID] = (newMessages!!.toMutableList().reversed().plus(messages[channelID]!!)).distinctBy { it.messageID }.toMutableList()
+                        if (selectedChannelID === channelID) {
+                            setMessagesAdapter()
+                        }
+                    }
+                    Log.d("testowo", msgs.first().toString())
+                    Log.d("testowo", response.body()?.messages?.size.toString())
+                }
+            }
+        })
+    }
     private fun setMessagesAdapter() {
         chat_loading_progress_bar.visibility = View.GONE
         chatting.visibility = View.VISIBLE
@@ -339,6 +409,7 @@ class MainActivity : AppCompatActivity()  {
                 getChannel(uniqueID)
                 selectedUniqueID = uniqueID;
             }
+            toolBarPresenceChange()
             friends_list.adapter?.notifyDataSetChanged()
             recent_list.adapter?.notifyDataSetChanged()
         }
@@ -413,8 +484,6 @@ class MainActivity : AppCompatActivity()  {
         recent_list.visibility = View.VISIBLE;
     }
 
-
-
     private fun setRecentAdapter() {
         recent_list.layoutManager = LinearLayoutManager(this)
         recent_list.adapter = RecentListAdapter()
@@ -431,6 +500,11 @@ class MainActivity : AppCompatActivity()  {
     private fun setChannelsListAdapter() {
         channels_list.layoutManager = LinearLayoutManager(this)
         channels_list.adapter = ChannelsListAdapter()
+    }
+
+    private fun setMembersListAdapter() {
+        members_list.layoutManager = LinearLayoutManager(this)
+        members_list.adapter = MembersListAdapter()
     }
 
 }
