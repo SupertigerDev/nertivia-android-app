@@ -1,6 +1,7 @@
 package com.supertiger.nertivia.models
 
-data class FriendsRecyclerData<out T> (
-    val value: T?,
-    var headerName: String? = null
+data class FriendsRecyclerData(
+    val type: Int?,
+    val friend: Friend?,
+    var headerName: String?
 )

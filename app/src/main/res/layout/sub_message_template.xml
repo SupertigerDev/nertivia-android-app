@@ -7,55 +7,31 @@
     android:clickable="true"
     android:focusable="true"
     android:gravity="center|start"
-    android:padding="5dp"
     android:layout_margin="2dp">
 
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <LinearLayout
         android:id="@+id/user_avatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="50dp"
+        android:layout_height="20dp"
         android:layout_marginLeft="2dp"
         android:layout_gravity="bottom"
-        android:layout_marginRight="2dp"/>
+        android:layout_marginRight="2dp"
+        android:orientation="horizontal" />
 
-    <LinearLayout
-        android:id="@+id/triangle"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/message_triangle"
-
-        />
     <LinearLayout
         android:id="@+id/details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="5dp"
-        android:background="@drawable/message_background"
-        android:minHeight="40dp"
+        android:background="@drawable/sub_message_background"
+        android:minHeight="30dp"
+        android:layout_margin="2dp"
         >
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Username"
-                android:textStyle="bold"
-                android:textColor="@color/white"/>
-            <TextView
-                android:id="@+id/time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Today at 11:11"
-                android:textStyle="bold"
-                android:textSize="13sp"
-                android:layout_marginStart="5dp"
-                android:textColor="#A6FFFFFF"/>
-        </LinearLayout>
+            android:layout_height="wrap_content"/>
         <TextView
             android:id="@+id/message"
             android:layout_width="wrap_content"
@@ -69,6 +45,8 @@
             android:layout_height="wrap_content"
             android:backgroundTint="#63000000"
             android:textColor="#D5D5D5"/>
+        <include layout="@layout/file_template"/>
+
     </LinearLayout>
 
 </LinearLayout>

@@ -7,8 +7,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="android:statusBarColor" >#073240</item>
-        <item name="android:navigationBarColor" >#073240</item>
+        <item name="android:statusBarColor" >#002947</item>
+        <item name="android:navigationBarColor" >#004377</item>
         <item name="android:windowDrawsSystemBarBackgrounds" >true</item>
 
     </style>

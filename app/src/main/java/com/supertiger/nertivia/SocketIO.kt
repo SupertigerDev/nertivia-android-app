@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.supertiger.nertivia.cache.*
 import com.supertiger.nertivia.models.*
+import com.supertiger.nertivia.models.Friend
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -16,7 +17,8 @@ import java.sql.Struct
 
 class SocketIO {
     var mSocket: Socket? = null
-    var gson = Gson()
+    val gson = Gson()
+    var authenticated: Boolean = false;
 
     var onConnect: (() -> Unit)? = null
     var onDisconnect: (() -> Unit)? = null
@@ -24,6 +26,7 @@ class SocketIO {
     var onMessageReceive: ((selectedChannel: Boolean?) -> Unit)? = null
     var onMessageNotification: ((uniqueID: String?) -> Unit)? = null
     var onPresenceChange: (() -> Unit)? = null;
+    var onTyping: (() -> Unit)? = null;
 
     fun connect(address: String) {
         mSocket = IO.socket(address)
@@ -37,6 +40,7 @@ class SocketIO {
             onConnect?.invoke()
         }
         mSocket?.on("success") { args ->
+            authenticated = true;
             val obj = args[0] as JSONObject
             val user = obj.getJSONObject("user");
             val settings = obj.getJSONObject("settings");
@@ -45,7 +49,7 @@ class SocketIO {
             val serversArr = user.getJSONArray("servers");
             val dmsArr = obj.getJSONArray("dms")
             val notifsArr = obj.getJSONArray("notifications")
-            val presences = obj.getJSONArray("currentFriendStatus");
+            val presences = obj.getJSONArray("memberStatusArr");
 
             val srvMem = obj.getJSONArray("serverMembers");
 
@@ -122,6 +126,19 @@ class SocketIO {
             userPresence.put(uniqueID, status);
             onPresenceChange?.invoke();
         }
+        mSocket?.on("typingStatus") {args ->
+            val obj = args[0] as JSONObject
+            val user = obj["user"] as JSONObject
+            val uniqueID = user["unique_id"] as String;
+            val username = user["username"] as String;
+            val channelID = obj["channel_id"] as String;
+
+            if (uniqueID == currentUser?.uniqueID) return@on;
+
+            addToTyping(channelID, username, uniqueID)
+
+            onTyping?.invoke();
+        }
         mSocket?.on("receiveMessage" ) { args ->
             val obj = args[0] as JSONObject
             val message = gson.fromJson(obj.getJSONObject("message").toString(), Message::class.java)
@@ -131,7 +148,7 @@ class SocketIO {
             val messagesCount = messages[message?.channelID]?.size
             if (messagesCount != null) {
                 if (message != null) {
-                    messages[message.channelID]?.add(0, message)
+                    messages[message.channelID]?.add(message)
                 }
             }
             if (selectedChannelID != message?.channelID) {
@@ -151,14 +168,19 @@ class SocketIO {
                     dismissNotification(message?.channelID);
                 }
             }
+            removeToTyping(message.channelID!!, message.creator?.uniqueID!!);
             onMessageReceive?.invoke(selectedChannelID == message?.channelID)
         }
         mSocket?.on("disconnect") {
+            authenticated = false;
             onDisconnect?.invoke()
        }
     }
     fun connected (): Boolean {
         return mSocket != null && mSocket?.connected() == true
+    }
+    fun authenticated (): Boolean {
+        return authenticated
     }
     fun id () : String? {
         return mSocket?.id()
@@ -170,6 +192,12 @@ class SocketIO {
             return mSocket?.emit("notification:dismiss", obj)
         }
         return null
+    }
+    fun disconnect() {
+        mSocket?.disconnect()
+    }
+    fun reconnect() {
+        mSocket?.connect()
     }
     fun emit (event: String, args: Any?): Boolean {
         if (mSocket == null || mSocket?.connected() == false || mSocket?.id().isNullOrEmpty()) {

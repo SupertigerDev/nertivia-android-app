@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="5dp"
-        android:background="@drawable/sub_message_background_reversed"
+        android:background="@drawable/message_background"
         android:minHeight="20dp"
         >
         <LinearLayout
@@ -29,6 +29,12 @@
                 android:layout_height="wrap_content"
                 android:text="Username"
                 android:textStyle="bold"
+                android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/presence_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Has owo the server."
                 android:textColor="@color/white"/>
             <TextView
                 android:id="@+id/time"

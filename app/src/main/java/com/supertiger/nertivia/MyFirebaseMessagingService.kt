@@ -1,37 +1,35 @@
 package com.supertiger.nertivia
 
 
-import android.app.*
+import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
-import com.supertiger.nertivia.activities.MainActivity
-import android.content.Intent
-import android.app.ActivityManager.RunningAppProcessInfo
-import android.graphics.*
-
-
-
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-
+import androidx.core.app.Person
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-
-import androidx.core.app.Person
-import androidx.core.content.ContextCompat
-import com.supertiger.nertivia.cache.localNotifications
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
+import com.supertiger.nertivia.activities.MainActivity
+import com.supertiger.nertivia.cache.selectedChannelID
 import com.supertiger.nertivia.models.LocalNotification
 import com.supertiger.nertivia.models.LocalNotificationMessage
 
-
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-
     private var notificationManager: NotificationManagerCompat? = null
+
+
     val MESSAGE_CHANNEL = "message"
 
     override fun onCreate() {
@@ -59,9 +57,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        if (applicationInForeground()) {
-            return;
-        }
+
         val channelID = remoteMessage.data["channel_id"]
         val uniqueID = remoteMessage.data["unique_id"]
         val avatar = remoteMessage.data["avatar"]
@@ -70,6 +66,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         var serverID: String? = null
         var serverName: String? = null
         var channelName: String? = null;
+
 
         if (remoteMessage.data["server_id"] != null) {
             serverID = remoteMessage.data["server_id"]
@@ -81,12 +78,29 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             channelName = remoteMessage.data["channel_name"]
         }
 
-        val notificationID = addAndReturnNotificationID(channelID, message, username);
+
+
+        if (selectedChannelID == channelID && applicationInForeground()) {
+            return
+        }
+
+        val notificationItm = addAndReturnNotification(channelID, message, username);
+        val notificationID = notificationItm?.id
 
         // added up messages
-        val messages = localNotifications[notificationID].messages;
+        val messages = notificationItm?.messages;
+
+        val dismissIntent = Intent(this, NotificationDismiss::class.java)
+        dismissIntent.putExtra("notificationID", notificationID);
+
+        val dismissPendingIntent = PendingIntent.getBroadcast(this,
+            notificationID!!, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
         val activityIntent = Intent(this, MainActivity::class.java)
+
+
+
         activityIntent.putExtra("notification:channelID", channelID);
         if (serverID != null) {
             activityIntent.putExtra("notification:channelName", channelName);
@@ -102,24 +116,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL)
             .setSmallIcon(R.drawable.notification_icon)
             .setColor(ContextCompat.getColor(this, R.color.colorPrimary))
-            .setContentTitle(username + " (" + messages.size + ")")
+            .setContentTitle(username + " (" + messages!!.size + ")")
             .setSubText("Click to view")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setContentIntent(contentIntent)
+            .setDeleteIntent(dismissPendingIntent)
             .setAutoCancel(true)
 
         val wew: Person = Person.Builder().setName("wew").build();
 
         val messagingStyle = NotificationCompat.MessagingStyle(wew);
 
-        messagingStyle.setGroupConversation(true)
+        messagingStyle.isGroupConversation = true
         messagingStyle.conversationTitle = username;
         if (serverName != null) {
             messagingStyle.conversationTitle = "$serverName#$channelName ";
         }
 
-        messages.takeLast(6).forEach {
+        messages.takeLast(4).forEach {
             val user: Person = Person.Builder().setName(it?.username).build();
             val message1 = NotificationCompat.MessagingStyle.Message(it?.message,
                 2,
@@ -136,7 +151,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         //notification.setStyle(inboxStyle)
 
 
-        Glide.with(this).asBitmap().load("https://supertiger.tk/api/avatars/" + (avatar ?: "default") + "?type=webp").into(object : CustomTarget<Bitmap>() {
+        Glide.with(this).asBitmap()
+            .load(if (avatar != null) "https://nertivia-media.tk/${avatar}?type=webp" else "")
+            .fallback(R.drawable.nertivia_logo)
+            .placeholder(R.drawable.nertivia_logo)
+            .into(object : CustomTarget<Bitmap>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                 notification.setLargeIcon(getCircleBitmap(resource))
                 notificationManager?.notify(notificationID, notification.build())
@@ -176,22 +195,26 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         return isActivityFound
     }
 
-    private fun addAndReturnNotificationID(channelID: String?, message: String?, username: String? ): Int {
-        val notificationID = localNotifications.indexOfFirst { it.channelID == channelID };
+    private fun addAndReturnNotification(channelID: String?, message: String?, username: String? ): LocalNotification? {
+        val allNotifications = AppDatabase.getInstance(applicationContext).pushNotificationDao().getAll()
+        Log.d("testty", allNotifications.size.toString())
+        val notification = allNotifications.find { it.channelID == channelID };
         if (channelID != null) {
-            if (notificationID >= 0) {
-                localNotifications[notificationID].messages.add(LocalNotificationMessage(message, username))
-                if (localNotifications[notificationID].messages.size >= 20) {
-                    localNotifications[notificationID].messages.removeAt(0);
+            if (notification != null) {
+                notification.messages.add(LocalNotificationMessage(message, username))
+                if (notification.messages.size >= 20) {
+                    notification.messages.removeAt(0);
                 }
-                return notificationID
+                AppDatabase.getInstance(applicationContext).pushNotificationDao().update(notification);
+                return notification
             } else {
                 val arr: MutableList<LocalNotificationMessage?> = mutableListOf(LocalNotificationMessage(message, username));
-                localNotifications.add(LocalNotification(arr, channelID))
-                return localNotifications.size - 1;
+                val newNotification = LocalNotification(0, arr, channelID);
+                AppDatabase.getInstance(applicationContext).pushNotificationDao().insertAll(newNotification)
+                return AppDatabase.getInstance(applicationContext).pushNotificationDao().findByChannelID(channelID);
             }
         }
-        return -1;
+        return null;
     }
 
     private fun getCircleBitmap(bitmap: Bitmap): Bitmap {

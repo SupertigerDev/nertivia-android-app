@@ -30,8 +30,9 @@ class MembersListAdapter: RecyclerView.Adapter<MembersViewHolder>() {
 
         holder.itemView.username.text = user?.username ?: ""
 
+
         Glide.with(holder.itemView.context)
-            .load("https://supertiger.tk/api/avatars/" + (user?.avatar ?: "default") + "?type=webp")
+            .load(if (user?.avatar != null) "https://nertivia-media.tk/${user.avatar}?type=webp" else "")
             .apply(RequestOptions().override(200, 200))
             .placeholder(R.drawable.nertivia_logo)
             .into(holder.itemView.user_avatar);

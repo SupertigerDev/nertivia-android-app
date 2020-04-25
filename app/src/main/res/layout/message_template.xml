@@ -16,17 +16,16 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginLeft="2dp"
-        android:layout_gravity="bottom"
+        android:layout_gravity="top"
         android:layout_marginRight="2dp"/>
 
     <LinearLayout
         android:id="@+id/triangle"
         android:layout_width="6dp"
         android:layout_height="6dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/message_triangle"
+        android:layout_gravity="start"
 
-        />
+        android:background="@drawable/message_triangle" />
     <LinearLayout
         android:id="@+id/details"
         android:layout_width="wrap_content"
@@ -69,6 +68,7 @@
             android:layout_height="wrap_content"
             android:backgroundTint="#63000000"
             android:textColor="#D5D5D5"/>
+        <include layout="@layout/file_template"/>
     </LinearLayout>
 
 </LinearLayout>

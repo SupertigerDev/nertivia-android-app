@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="#5A000000"
+    android:gravity="start|center"
+    android:layout_height="60dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/image_upload_preview"
+        android:layout_marginStart="5dp"
+        android:layout_width="100dp"
+        android:layout_height="50dp"/>
+    <TextView
+        android:layout_marginStart="5dp"
+        android:id="@+id/image_upload_preview_filename"
+        android:textColor="#fff"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="FILE_NAME"/>
+
+    <ImageView
+        android:onClick="clearImagePicked"
+        android:id="@+id/clear_upload_preview"
+        android:src="@drawable/close_button"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"/>
+</LinearLayout>

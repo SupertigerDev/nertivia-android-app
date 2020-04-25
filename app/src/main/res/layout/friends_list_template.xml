@@ -7,8 +7,8 @@
     android:background="@drawable/friend_list_background"
     android:clickable="true"
     android:focusable="true"
-    android:paddingStart="13dp"
-    android:paddingEnd="13dp"
+    android:paddingStart="5dp"
+    android:paddingEnd="5dp"
     android:gravity="center|start">
 
 

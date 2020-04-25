@@ -40,7 +40,7 @@ private fun isYesterday(cal: Calendar): Boolean {
 private fun getFullTime(cal: Calendar): String {
     val hours = cal.get(Calendar.HOUR_OF_DAY)
     val minutes = cal.get(Calendar.MINUTE)
-    var finalTime = "";
+    var finalTime: String
 
     if (hours <= 9) {
         finalTime = "0$hours"

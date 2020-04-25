@@ -46,7 +46,7 @@ class ServersListAdapter: RecyclerView.Adapter<ServerViewHolder>() {
         }
 
         Glide.with(holder.itemView.context)
-        .load("https://supertiger.tk/api/avatars/" + (server.avatar ?: "default") + "?type=webp")
+        .load(if (server.avatar != null) "https://nertivia-media.tk/${server.avatar}?type=webp" else "")
         .apply(RequestOptions().override(200, 200))
         .placeholder(R.drawable.nertivia_logo)
         .into(holder.itemView.user_avatar);

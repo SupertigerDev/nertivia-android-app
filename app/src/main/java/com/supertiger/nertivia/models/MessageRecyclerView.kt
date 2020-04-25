@@ -1,7 +1,6 @@
 package com.supertiger.nertivia.models
 
-data class FriendsRecyclerData(
-    val type: Int?,
-    val friend: Friend?,
-    var headerName: String?
+data class MessageRecyclerView(
+    val type: Int,
+    val message: Message
 )
