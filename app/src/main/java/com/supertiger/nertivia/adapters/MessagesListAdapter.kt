@@ -1,5 +1,6 @@
 package com.supertiger.nertivia.adapters
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Color
@@ -9,7 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat.startActivity
+import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -19,18 +20,42 @@ import com.supertiger.nertivia.cache.getRecyclerMessages
 import com.supertiger.nertivia.friendlyDate
 import com.supertiger.nertivia.models.Message
 import com.supertiger.nertivia.models.MessageRecyclerView
+import io.noties.markwon.AbstractMarkwonPlugin
+import io.noties.markwon.Markwon
+import io.noties.markwon.MarkwonVisitor
 import kotlinx.android.synthetic.main.file_template.view.*
 import kotlinx.android.synthetic.main.message_template.view.*
 import kotlinx.android.synthetic.main.message_template.view.details
 import kotlinx.android.synthetic.main.message_template.view.time
 import kotlinx.android.synthetic.main.message_template.view.username
 import kotlinx.android.synthetic.main.presence_message_template.view.*
+import org.commonmark.node.*
+import org.commonmark.parser.Parser
 import java.io.File
+import java.util.*
 
 
-class MessagesListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class MessagesListAdapter(applicationContext: Context) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var messages = getRecyclerMessages();
-
+    private val markwon: Markwon = Markwon.builder(applicationContext)
+        .usePlugin(object : AbstractMarkwonPlugin() {
+            override fun configureVisitor(builder: MarkwonVisitor.Builder) {
+                builder.on(Paragraph::class.java, null);
+                builder.on(BlockQuote::class.java, null);
+                builder.on(IndentedCodeBlock::class.java, null);
+                builder.on(Image::class.java, null);
+                builder.on(BulletList::class.java, null);
+                builder.on(OrderedList::class.java, null);
+                builder.on(ListItem::class.java, null);
+                builder.on(ThematicBreak::class.java, null);
+                builder.on(Heading::class.java, null);
+                builder.on(SoftLineBreak::class.java, null);
+                builder.on(HardLineBreak::class.java, null);
+                builder.on(Paragraph::class.java, null);
+                builder.on(Link::class.java, null);
+            }
+        })
+        .build()
     fun addMessage() {
         messages = getRecyclerMessages()
         notifyItemInserted(0)
@@ -43,11 +68,11 @@ class MessagesListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (viewType == 0) {
             val layoutInflater = LayoutInflater.from(parent.context)
             val cellForRow = layoutInflater.inflate(R.layout.message_template, parent, false)
-            return MainMessageViewHolder(cellForRow)
+            return MainMessageViewHolder(cellForRow, markwon)
         } else if (viewType == 1) {
             val layoutInflater = LayoutInflater.from(parent.context)
             val cellForRow = layoutInflater.inflate(R.layout.sub_message_template, parent, false)
-            return SubMessageViewHolder(cellForRow)
+            return SubMessageViewHolder(cellForRow, markwon)
         } else {
             val layoutInflater = LayoutInflater.from(parent.context)
             val cellForRow = layoutInflater.inflate(R.layout.presence_message_template, parent, false)
@@ -163,7 +188,7 @@ fun fileMessage(view: View, item: Message) {
     }
 }
 
-class MainMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
+class MainMessageViewHolder(v: View, private val markwon: Markwon): RecyclerView.ViewHolder(v) {
     private val messageArea = v.message;
     private val username = v.username;
     private val avatar = v.user_avatar;
@@ -172,7 +197,9 @@ class MainMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
     private val view = v;
 
     fun bind (item: MessageRecyclerView) {
-        messageArea.text = item.message.message
+        if (item.message.message !== null) {
+            markwon.setMarkdown(messageArea, item.message.message!!);
+        }
         username.text = item.message.creator?.username
         time.text = friendlyDate(item.message.created);
         Glide.with(context)
@@ -187,11 +214,14 @@ class MainMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
 }
 
 
-class SubMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
+class SubMessageViewHolder(v: View, private val markwon: Markwon): RecyclerView.ViewHolder(v) {
     private val messageArea = v.message;
     private val view = v;
     fun bind (item: MessageRecyclerView) {
-        messageArea.text = item.message.message
+        if (item.message.message !== null) {
+            markwon.setMarkdown(messageArea, item.message.message!!);
+        }
+       // messageArea.text = item.message.message
         messageReversed(currentUser?.uniqueID == item.message.creator?.uniqueID, view, 1);
         fileMessage(view, item.message);
     }

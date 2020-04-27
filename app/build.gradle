@@ -74,8 +74,9 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.0.0-RC3'
 
     // cloud messaging
-    implementation 'com.google.firebase:firebase-messaging:20.1.5'
+    implementation 'com.google.firebase:firebase-messaging:20.1.6'
 
+    implementation("io.noties.markwon:core:4.3.1")
 
     //noinspection GradleDependency
     implementation "androidx.legacy:legacy-support-v4:1.0.0"

@@ -10,7 +10,7 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
 interface UserService {
-    @POST("user/login?android=true")
+    @POST("user/login")
     fun login(@Body body: LoginData):Call<LoginResponse>
 
     // registerDevice

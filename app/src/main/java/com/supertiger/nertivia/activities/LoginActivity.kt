@@ -1,11 +1,16 @@
 package com.supertiger.nertivia.activities
 
+import android.annotation.SuppressLint
+import android.app.Dialog
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.view.WindowManager
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
-import com.google.android.gms.safetynet.SafetyNet
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.gson.Gson
@@ -23,31 +28,63 @@ import retrofit2.Call
 import retrofit2.Response
 import javax.security.auth.callback.Callback
 
+
 class LoginActivity : AppCompatActivity() {
+    public lateinit var captchaDialog: Dialog;
     private val userService = ServiceBuilder.buildService(UserService::class.java)
     private var sharedPreference: SharedPreference? = null
     var gson = Gson()
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         sharedPreference= SharedPreference(this)
-
         // Login button event
         loginBtn.setOnClickListener { getReCaptchaToken() }
+
     }
+
     private fun getReCaptchaToken () {
+        class WebAppInterface(private val mContext: Context) {
 
-        Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show()
-        SafetyNet.getClient(applicationContext).verifyWithRecaptcha(getString(R.string.recaptcha_token))
-            .addOnSuccessListener { response ->
-                val reCaptchaToken = response.tokenResult
-                login(reCaptchaToken)
+            /** Show a toast from the web page  */
+            @JavascriptInterface
+            fun hCaptchaCallbackInAndroid(token: String) {
+                Toast.makeText(applicationContext, "Logging in...", Toast.LENGTH_SHORT).show()
+                captchaDialog.dismiss()
+                login(token);
 
             }
-            .addOnFailureListener {e ->
-                Toast.makeText(applicationContext,  e.message, Toast.LENGTH_SHORT).show()
-            }
+        }
+
+        captchaDialog = Dialog(this);
+
+        captchaDialog.setContentView(R.layout.captcha_dialog);
+        val webView = captchaDialog.findViewById<WebView>(R.id.captcha_web_view)
+
+        webView.settings.javaScriptEnabled = true;
+        webView.settings.builtInZoomControls = false;
+        webView.webViewClient =  WebViewClient()
+        val lp = WindowManager.LayoutParams()
+        lp.copyFrom(captchaDialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT
+        captchaDialog.show()
+        captchaDialog.window?.attributes = lp;
+        webView.loadUrl("https://nertivia.supertiger.tk/android_captcha.html")
+        webView.addJavascriptInterface(WebAppInterface(this), "BridgeWebViewClass")
+
+
+        //SafetyNet.getClient(applicationContext).verifyWithRecaptcha(getString(R.string.recaptcha_token))
+        //    .addOnSuccessListener { response ->
+        //        val reCaptchaToken = response.tokenResult
+        //        login(reCaptchaToken)
+
+        //    }
+        //    .addOnFailureListener {e ->
+        //        Toast.makeText(applicationContext,  e.message, Toast.LENGTH_SHORT).show()
+        //    }
     }
 
     private fun login (reCaptchaToken: String) {

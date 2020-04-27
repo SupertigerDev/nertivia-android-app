@@ -2,7 +2,6 @@ package com.supertiger.nertivia.activities
 
 import android.Manifest
 import android.app.Activity
-import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -326,7 +325,7 @@ class MainActivity : AppCompatActivity()  {
         requestCall.enqueue(object: Callback, retrofit2.Callback<PostMessageResponse?> {
             override fun onFailure(call: Call<PostMessageResponse?>, t: Throwable) {
                 File(cacheDir.path, filename).delete()
-                Toast.makeText(applicationContext,  t.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext,  "Something went wrong while uploading file. You can only upload images that are 5MB or less." , Toast.LENGTH_SHORT).show()
             }
 
             override fun onResponse(
@@ -598,7 +597,7 @@ class MainActivity : AppCompatActivity()  {
         val mLayoutManager = LinearLayoutManager(this)
         mLayoutManager.reverseLayout = true
         messages_list.layoutManager = mLayoutManager
-        messages_list.adapter = MessagesListAdapter()
+        messages_list.adapter = MessagesListAdapter(applicationContext)
 
     }
 
