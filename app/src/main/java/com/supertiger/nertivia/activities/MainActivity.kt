@@ -315,12 +315,15 @@ class MainActivity : AppCompatActivity()  {
             RequestBody.create(parse(mime), message)
         val cdnForm =
             RequestBody.create(parse(mime), "1")
+        val compressForm =
+            RequestBody.create(parse(mime), "1")
+
 
         val fileForm =
             MultipartBody.Part.createFormData("file", getFileName(imageUri), requestFile)
 
         Toast.makeText(applicationContext,  "Uploading...", Toast.LENGTH_SHORT).show()
-        val requestCall = messageService.sendFileMessage(channelID!!, messageForm,  cdnForm, fileForm);
+        val requestCall = messageService.sendFileMessage(channelID!!, messageForm,  cdnForm, compressForm, fileForm);
 
         requestCall.enqueue(object: Callback, retrofit2.Callback<PostMessageResponse?> {
             override fun onFailure(call: Call<PostMessageResponse?>, t: Throwable) {
@@ -597,7 +600,7 @@ class MainActivity : AppCompatActivity()  {
         val mLayoutManager = LinearLayoutManager(this)
         mLayoutManager.reverseLayout = true
         messages_list.layoutManager = mLayoutManager
-        messages_list.adapter = MessagesListAdapter(applicationContext)
+        messages_list.adapter = MessagesListAdapter()
 
     }
 

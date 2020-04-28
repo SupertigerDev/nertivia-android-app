@@ -30,6 +30,7 @@ interface MessageService {
         @Path("channelID") channelID: String,
         @Part("message") message: RequestBody,
         @Part("upload_cdn") uploadCdn: RequestBody,
+        @Part("compress") compress: RequestBody,
         @Part image: MultipartBody.Part
     ): Call<PostMessageResponse>
 
