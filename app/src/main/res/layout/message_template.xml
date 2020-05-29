@@ -25,7 +25,8 @@
         android:layout_height="6dp"
         android:layout_gravity="start"
 
-        android:background="@drawable/message_triangle" />
+        android:background="@drawable/message_triangle"
+        android:orientation="horizontal" />
     <LinearLayout
         android:id="@+id/details"
         android:layout_width="wrap_content"
@@ -59,7 +60,7 @@
             android:id="@+id/message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Message"
+            android:text="Messdfffffffffffffffffffffffffffffffffffffffffffffsdfsedfsdfsdfsfffffffffffffffsage"
             android:textColor="#D5D5D5"/>
         <ImageView
             android:visibility="gone"
@@ -69,6 +70,22 @@
             android:backgroundTint="#63000000"
             android:textColor="#D5D5D5"/>
         <include layout="@layout/file_template"/>
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="18dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="center|bottom"
+            android:src="@drawable/edit" />
     </LinearLayout>
 
 </LinearLayout>

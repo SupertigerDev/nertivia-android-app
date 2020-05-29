@@ -7,46 +7,29 @@
     android:padding="5dp"
     android:layout_margin="2dp">
 
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/user_avatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="top"
-        android:layout_marginStart="2dp"
         android:src="@drawable/nertivia_logo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <LinearLayout
-        android:id="@+id/triangle"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
-        android:layout_gravity="start"
-
-        android:layout_marginStart="2dp"
-        android:background="@drawable/message_triangle"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/details"
-        app:layout_constraintLeft_toRightOf="@+id/user_avatar"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:id="@+id/details"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/message_background"
         android:minHeight="40dp"
         android:orientation="vertical"
         android:padding="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/linearLayout"
-        app:layout_constraintLeft_toRightOf="@+id/triangle"
+        app:layout_constraintEnd_toStartOf="@+id/user_avatar"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -90,6 +73,20 @@
         <include layout="@layout/file_template" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/triangle"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="start"
+
+        android:background="@drawable/message_triangle"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/user_avatar"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/details"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -98,16 +95,17 @@
         android:layout_gravity="center"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/details"
+        app:layout_constraintEnd_toStartOf="@+id/details"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:layout_width="14dp"
             android:layout_height="14dp"
             android:layout_gravity="bottom|center"
-            android:src="@drawable/edit"
             android:layout_marginStart="5px"
+            android:src="@drawable/edit"
             tools:layout_editor_absoluteX="17dp"
             tools:layout_editor_absoluteY="82dp" />
     </LinearLayout>

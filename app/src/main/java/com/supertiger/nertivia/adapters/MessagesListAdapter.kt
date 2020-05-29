@@ -21,10 +21,10 @@ import com.supertiger.nertivia.models.Message
 import com.supertiger.nertivia.models.MessageRecyclerView
 import kotlinx.android.synthetic.main.file_template.view.*
 import kotlinx.android.synthetic.main.message_template.view.*
-import kotlinx.android.synthetic.main.message_template.view.details
-import kotlinx.android.synthetic.main.message_template.view.time
-import kotlinx.android.synthetic.main.message_template.view.username
 import kotlinx.android.synthetic.main.presence_message_template.view.*
+import kotlinx.android.synthetic.main.presence_message_template.view.details
+import kotlinx.android.synthetic.main.presence_message_template.view.time
+import kotlinx.android.synthetic.main.presence_message_template.view.username
 import java.io.File
 
 
@@ -34,6 +34,10 @@ class MessagesListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun addMessage() {
         messages = getRecyclerMessages()
         notifyItemInserted(0)
+    }
+    fun dataSetChanged() {
+        messages = getRecyclerMessages()
+        notifyDataSetChanged()
     }
     override fun getItemCount(): Int {
         return messages.size
@@ -101,6 +105,7 @@ fun messageReversed(isSelf: Boolean, view: View, type: Int) {
         )
         params.gravity = Gravity.END
         view.layoutParams = params
+
     } else {
         if (view.triangle != null) {
             view.triangle.setBackgroundResource(R.drawable.message_triangle)

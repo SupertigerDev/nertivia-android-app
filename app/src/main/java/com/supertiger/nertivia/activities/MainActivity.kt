@@ -406,8 +406,8 @@ class MainActivity : AppCompatActivity()  {
                 }
                 checkPrivateNotification()
                 toolBarPresenceChange()
-                if (selectedChannelID !== null && inFocus) {
-                    checkForNewMessages(selectedChannelID)
+                if (selectedChannelID !== null) {
+                    reloadMessages(selectedChannelID)
                 }
             }
         }
@@ -417,6 +417,21 @@ class MainActivity : AppCompatActivity()  {
                 showTypingStatus()
                 if (fromSelectedChannel == true) {
                     addMessageToAdapterAndScroll()
+                }
+            }
+        }
+        socketIOInstance?.onUpdateMessage = {channelID, _ ->
+            if (selectedChannelID == channelID) {
+                runOnUiThread {
+                    messageDataSetChanged()
+                }
+            }
+
+        }
+        socketIOInstance?.onDeleteMessage = {channelID, messageID ->
+            if (selectedChannelID == channelID) {
+                runOnUiThread {
+                    messageDataSetChanged()
                 }
             }
         }
@@ -538,7 +553,7 @@ class MainActivity : AppCompatActivity()  {
             selectedChannelID = channelID
             setMessagesAdapter()
             // check if new messages exist. (just in case if client disconnected)
-            checkForNewMessages(channelID)
+            reloadMessages(channelID)
             return
         }
         chatting.visibility = View.GONE
@@ -565,15 +580,14 @@ class MainActivity : AppCompatActivity()  {
         })
     }
 
-    private fun checkForNewMessages(channelID: String?) {
+    private fun reloadMessages(channelID: String?) {
         val msgs = messages[channelID]
 
         if (msgs === null) {
             return
         }
-        val lastMessageID = msgs.last().messageID
 
-        messageService.getMessagesBefore(channelID, lastMessageID).enqueue(object: Callback, retrofit2.Callback<GetMessagesResponse> {
+        messageService.getMessages(channelID).enqueue(object: Callback, retrofit2.Callback<GetMessagesResponse> {
 
             override fun onFailure(call: Call<GetMessagesResponse>, t: Throwable) {
                 Toast.makeText(applicationContext,  t.message, Toast.LENGTH_SHORT).show()
@@ -583,13 +597,13 @@ class MainActivity : AppCompatActivity()  {
                 if (response.isSuccessful) {
                     if (response.body()?.messages !== null && response.body()?.messages!!.isNotEmpty()) {
                         val newMessages = response.body()?.messages
-                        messages[channelID] = (messages[channelID]!!.plus(newMessages!!)).distinctBy { it.messageID }.toMutableList()
+                        messages[channelID] = newMessages!!.reversed().distinctBy { it.messageID }.toMutableList()
                         if (selectedChannelID === channelID) {
-                            setMessagesAdapter()
+                            runOnUiThread {
+                                messageDataSetChanged()
+                            }
                         }
                     }
-                    Log.d("testowo", msgs.first().toString())
-                    Log.d("testowo", response.body()?.messages?.size.toString())
                 }
             }
         })
@@ -746,6 +760,11 @@ class MainActivity : AppCompatActivity()  {
     private fun updateFriendsListData() {
         if (friends_list.adapter != null) {
             (friends_list.adapter as FriendsListAdapter).updateList();
+        }
+    }
+    private fun messageDataSetChanged () {
+        if (messages_list.adapter != null) {
+            (messages_list.adapter as MessagesListAdapter).dataSetChanged();
         }
     }
     private fun addMessageToAdapterAndScroll() {

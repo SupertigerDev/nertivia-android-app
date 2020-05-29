@@ -5,14 +5,12 @@ import android.util.Log
 import com.google.gson.Gson
 import com.supertiger.nertivia.cache.*
 import com.supertiger.nertivia.models.*
-import com.supertiger.nertivia.models.Friend
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URISyntaxException
-import java.sql.Struct
 
 
 class SocketIO {
@@ -24,6 +22,8 @@ class SocketIO {
     var onDisconnect: (() -> Unit)? = null
     var onAuthenticate: (() -> Unit)? = null
     var onMessageReceive: ((selectedChannel: Boolean?) -> Unit)? = null
+    var onUpdateMessage: ((channelID: String?, messageID: String?) -> Unit)? = null
+    var onDeleteMessage: ((channelID: String?, messageID: String?) -> Unit)? = null
     var onMessageNotification: ((uniqueID: String?) -> Unit)? = null
     var onPresenceChange: (() -> Unit)? = null;
     var onTyping: (() -> Unit)? = null;
@@ -171,6 +171,34 @@ class SocketIO {
             removeToTyping(message.channelID!!, message.creator?.uniqueID!!);
             onMessageReceive?.invoke(selectedChannelID == message?.channelID)
         }
+        mSocket?.on("update_message" ) { args ->
+            val obj = args[0] as JSONObject
+            val message = gson.fromJson(obj.toString(), Message::class.java);
+            val messages = messages[message.channelID];
+            if (messages === null) {
+                return@on
+            }
+            val existingMessageIndex = messages.indexOfFirst { it.messageID == message.messageID };
+            if (existingMessageIndex < 0) {
+                return@on
+            }
+            val existingMessage = messages[existingMessageIndex]
+            messages[existingMessageIndex] = gson.fromJson(mergeObj(JSONObject(gson.toJson(existingMessage)), obj).toString(), Message::class.java);
+            onUpdateMessage?.invoke(message.channelID, message.messageID);
+        }
+        mSocket?.on("delete_message") { args ->
+            val obj = args[0] as JSONObject
+            val channelID = obj.getString("channelID")
+            val messageID = obj.getString("messageID")
+            if (messages[channelID] === null) {return@on}
+            val message = messages[channelID]?.find { it.messageID == messageID }
+
+            if (message === null) {return@on}
+            messages[channelID]?.remove(message);
+            onDeleteMessage?.invoke(channelID, messageID)
+
+
+        }
         mSocket?.on("disconnect") {
             authenticated = false;
             onDisconnect?.invoke()
@@ -211,4 +239,13 @@ class SocketIO {
         }
     }
 
+}
+
+
+fun mergeObj (first: JSONObject, second: JSONObject): JSONObject {
+    val obj = JSONObject(first.toString());
+    second.keys().forEach {
+        obj.put(it, second[it])
+    }
+    return obj;
 }
