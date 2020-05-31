@@ -6,6 +6,7 @@ data class Message (
     var channelID: String? = null,
     var messageID: String? = null,
     var created: Long? = 0,
+    var timeEdited: Long? = null,
     var files: List<File?>?,
     var type: Int
 )

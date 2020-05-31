@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -20,11 +21,16 @@ import com.supertiger.nertivia.friendlyDate
 import com.supertiger.nertivia.models.Message
 import com.supertiger.nertivia.models.MessageRecyclerView
 import kotlinx.android.synthetic.main.file_template.view.*
+import kotlinx.android.synthetic.main.message_bubble.view.*
 import kotlinx.android.synthetic.main.message_template.view.*
+import kotlinx.android.synthetic.main.message_template.view.message_status
+import kotlinx.android.synthetic.main.message_template.view.user_avatar
+import kotlinx.android.synthetic.main.message_template.view.edit_icon
 import kotlinx.android.synthetic.main.presence_message_template.view.*
 import kotlinx.android.synthetic.main.presence_message_template.view.details
 import kotlinx.android.synthetic.main.presence_message_template.view.time
 import kotlinx.android.synthetic.main.presence_message_template.view.username
+import kotlinx.android.synthetic.main.sub_message_template.view.*
 import java.io.File
 
 
@@ -87,44 +93,57 @@ class MessagesListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 }
 
 fun messageReversed(isSelf: Boolean, view: View, type: Int) {
+
     if (isSelf) {
         if (view.triangle != null) {
             view.triangle.setBackgroundResource(R.drawable.message_triangle_reversed)
         }
         if (type == 1) {
-            view.details.setBackgroundResource(R.drawable.sub_message_background_reversed)
+            view.bubble.setBackgroundResource(R.drawable.sub_message_background_reversed)
         } else {
-            view.details.setBackgroundResource(R.drawable.message_background_reversed)
+            view.bubble.setBackgroundResource(R.drawable.message_background_reversed)
         }
 
-        view.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        view.bubble.layoutDirection = View.LAYOUT_DIRECTION_LTR
 
         view.layoutDirection = View.LAYOUT_DIRECTION_RTL
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.gravity = Gravity.END
-        view.layoutParams = params
+
+        val params = view.bubble.layoutParams as ConstraintLayout.LayoutParams
+        params.startToEnd = view.message_status.id;
+        if (view.triangle !== null) {
+            params.endToStart = view.triangle.id
+        } else {
+            params.endToStart = view.user_avatar_fake.id
+            params.horizontalBias = 1F
+        }
+
 
     } else {
         if (view.triangle != null) {
             view.triangle.setBackgroundResource(R.drawable.message_triangle)
         }
         if (type == 1) {
-            view.details.setBackgroundResource(R.drawable.sub_message_background)
+            view.bubble.setBackgroundResource(R.drawable.sub_message_background)
         } else {
-            view.details.setBackgroundResource(R.drawable.message_background)
+            view.bubble.setBackgroundResource(R.drawable.message_background)
         }
 
-        view.details.layoutDirection = View.LAYOUT_DIRECTION_LTR
 
         view.layoutDirection = View.LAYOUT_DIRECTION_LTR
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.gravity = Gravity.START
-        view.layoutParams = params
+        val params = view.bubble.layoutParams as ConstraintLayout.LayoutParams
+        params.endToStart = view.message_status.id;
+
+        if (view.triangle !== null) {
+            params.startToEnd = view.triangle.id
+        } else {
+            params.startToEnd = view.user_avatar_fake.id
+            params.horizontalBias = 0F
+        }
+
     }
+
+
+
 }
 
 fun fileMessage(view: View, item: Message) {
@@ -187,6 +206,11 @@ class MainMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
             .into(avatar);
         messageReversed(currentUser?.uniqueID == item.message.creator?.uniqueID, view, 0);
         fileMessage(view, item.message);
+        if (item.message.timeEdited !== null) {
+            view.edit_icon.visibility = View.VISIBLE
+        } else {
+            view.edit_icon.visibility = View.GONE
+        }
     }
 
 }
@@ -199,6 +223,11 @@ class SubMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
         messageArea.text = item.message.message
         messageReversed(currentUser?.uniqueID == item.message.creator?.uniqueID, view, 1);
         fileMessage(view, item.message);
+        if (item.message.timeEdited !== null) {
+            view.edit_icon.visibility = View.VISIBLE
+        } else {
+            view.edit_icon.visibility = View.GONE
+        }
     }
 
 }
