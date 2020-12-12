@@ -46,7 +46,7 @@ class ServersListAdapter: RecyclerView.Adapter<ServerViewHolder>() {
         }
 
         Glide.with(holder.itemView.context)
-        .load(if (server.avatar != null) "https://nertivia-media.tk/${server.avatar}?type=webp" else "")
+        .load(if (server.avatar != null) "https://media.nertivia.net/${server.avatar}?type=webp" else "")
         .apply(RequestOptions().override(200, 200))
         .placeholder(R.drawable.nertivia_logo)
         .into(holder.itemView.user_avatar);

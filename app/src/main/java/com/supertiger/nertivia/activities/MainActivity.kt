@@ -502,7 +502,7 @@ class MainActivity : AppCompatActivity()  {
 
 
         Glide.with(this)
-            .load(if (currentUser?.avatar != null) "https://nertivia-media.tk/${currentUser?.avatar}?type=webp" else "")
+            .load(if (currentUser?.avatar != null) "https://media.nertivia.net/${currentUser?.avatar}?type=webp" else "")
             .placeholder(R.drawable.nertivia_logo).into(header_avatar)
 
 
@@ -687,7 +687,7 @@ class MainActivity : AppCompatActivity()  {
             server_banner.visibility = View.VISIBLE;
         }
         Glide.with(applicationContext)
-            .load(if (servers[selectedServerID]?.banner != null) "https://nertivia-media.tk/${servers[selectedServerID]?.banner}?type=webp" else "")
+            .load(if (servers[selectedServerID]?.banner != null) "https://media.nertivia.net/${servers[selectedServerID]?.banner}?type=webp" else "")
             .apply(RequestOptions().override(240, 130).centerCrop())
             .into(server_banner)
         server_banner.clipToOutline = true

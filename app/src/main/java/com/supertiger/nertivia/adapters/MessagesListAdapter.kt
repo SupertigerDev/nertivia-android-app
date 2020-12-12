@@ -160,7 +160,7 @@ fun fileMessage(view: View, item: Message) {
             if (file!!.url !== null) {
                 url = file!!.url.toString();
             } else {
-                url = "https://supertiger.tk/api/media/" + file!!.fileID;
+                url = "https://nertivia.net/api/media/" + file!!.fileID;
             }
             view.file.visibility = View.GONE;
             view.image.visibility = View.VISIBLE
@@ -173,7 +173,7 @@ fun fileMessage(view: View, item: Message) {
             view.file.file_text.text = file.fileName
             view.image.visibility = View.GONE;
             view.file.setOnClickListener {
-                val url = "https://supertiger.tk/api/files/" + file.fileID + "/" + file.fileName
+                val url = "https://nertivia.net/api/files/" + file.fileID + "/" + file.fileName
                 val i = Intent(Intent.ACTION_VIEW)
                 i.data = Uri.parse(url)
                 view.context.startActivity(i);
@@ -200,7 +200,7 @@ class MainMessageViewHolder(v: View): RecyclerView.ViewHolder(v) {
         username.text = item.message.creator?.username
         time.text = friendlyDate(item.message.created);
         Glide.with(context)
-            .load(if (item.message.creator?.avatar != null) "https://nertivia-media.tk/${item.message.creator?.avatar}?type=webp" else "")
+            .load(if (item.message.creator?.avatar != null) "https://media.nertivia.net/${item.message.creator?.avatar}?type=webp" else "")
             .apply(RequestOptions().override(200, 200))
             .placeholder(R.drawable.nertivia_logo)
             .into(avatar);

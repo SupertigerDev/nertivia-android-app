@@ -72,7 +72,7 @@ class LoginActivity : AppCompatActivity() {
         lp.height = WindowManager.LayoutParams.MATCH_PARENT
         captchaDialog.show()
         captchaDialog.window?.attributes = lp;
-        webView.loadUrl("https://nertivia.supertiger.tk/android_captcha.html")
+        webView.loadUrl("https://nertivia.net/android_captcha.html")
         webView.addJavascriptInterface(WebAppInterface(this), "BridgeWebViewClass")
 
 

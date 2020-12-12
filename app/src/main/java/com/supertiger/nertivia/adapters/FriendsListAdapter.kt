@@ -82,7 +82,7 @@ class FriendsListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         // }
 
         // Glide.with(holder.itemView.context)
-        //   .load("https://supertiger.tk/api/avatars/" + (user?.avatar ?: "default") + "?type=webp")
+        //   .load("https://nertivia.net/api/avatars/" + (user?.avatar ?: "default") + "?type=webp")
         //   .apply(RequestOptions().override(200, 200))
         //    .placeholder(R.drawable.nertivia_logo)
         //    .into(holder.itemView.user_avatar);
@@ -153,7 +153,7 @@ class FriendViewHolder(v: View) : RecyclerView.ViewHolder(v) {
 
         val avatar = item.friend.recipient.avatar
         Glide.with(context)
-            .load(if (avatar != null) "https://nertivia-media.tk/$avatar?type=webp" else "")
+            .load(if (avatar != null) "https://media.nertivia.net/$avatar?type=webp" else "")
             .apply(RequestOptions().override(200, 200))
             .placeholder(R.drawable.nertivia_logo)
             .into(userAvatar);

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Nertivia</string>
     <string name="recaptcha_token">6Ld6TLcUAAAAAFJIrNp97cW2uVMxJVxZT1dCwZOU</string>
-    <string name="domain">https://nertivia.supertiger.tk</string>
+    <string name="domain">https://nertivia.net</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Open navigation drawer</string>
 </resources>

@@ -152,7 +152,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
 
         Glide.with(this).asBitmap()
-            .load(if (avatar != null) "https://nertivia-media.tk/${avatar}?type=webp" else "")
+            .load(if (avatar != null) "https://media.nertivia.net/${avatar}?type=webp" else "")
             .fallback(R.drawable.nertivia_logo)
             .placeholder(R.drawable.nertivia_logo)
             .into(object : CustomTarget<Bitmap>() {

@@ -32,7 +32,7 @@ class MembersListAdapter: RecyclerView.Adapter<MembersViewHolder>() {
 
 
         Glide.with(holder.itemView.context)
-            .load(if (user?.avatar != null) "https://nertivia-media.tk/${user.avatar}?type=webp" else "")
+            .load(if (user?.avatar != null) "https://media.nertivia.net/${user.avatar}?type=webp" else "")
             .apply(RequestOptions().override(200, 200))
             .placeholder(R.drawable.nertivia_logo)
             .into(holder.itemView.user_avatar);
